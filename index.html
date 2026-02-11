@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il nostro spazio speciale 💖</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg,#ffe6f0,#fff0f5);
+  color: #5a2a5e;
+  overflow-x: hidden;
+}
+
+header {
+  text-align: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+header h1 {
+  font-size: 2.8em;
+  color: #b30059;
+  text-shadow: 1px 1px 10px #ffd6ec;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+section { margin: 20px auto; max-width: 700px; }
+
+#message, #guidedMessage, .bonus {
+  margin: 20px 0;
+  padding: 20px;
+  background: #fff0f5;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  font-size: 1.3em;
+  line-height: 1.6em;
+  transition: transform 0.3s;
+}
+#message:hover, #guidedMessage:hover, .bonus:hover { transform: scale(1.02); }
+
+#thoughts {
+  width: 90%;
+  max-width: 700px;
+  height: 120px;
+  margin: 10px auto;
+  padding: 15px;
+  border-radius: 12px;
+  border: 2px solid #ff99cc;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  resize: vertical;
+}
+
+button {
+  padding: 12px 25px;
+  font-size: 1em;
+  margin: 5px;
+  border-radius: 12px;
+  background-color: #ff66aa;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover {
+  background-color: #ff3399;
+  transform: translateY(-3px);
+}
+
+#album, #mediaList, #savedThoughts {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.photo-thumb, .media-thumb, .thought-item {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  margin: 5px;
+  border-radius: 12px;
+  border: 2px solid #ff99cc;
+  cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.photo-thumb:hover, .media-thumb:hover, .thought-item:hover { transform: scale(1.1); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+.thought-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9em;
+  background-color: #ffe6f0;
+  text-align: center;
+  padding: 5px;
+  height: auto;
+  min-height: 50px;
+  max-width: 150px;
+  overflow-wrap: break-word;
+}
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 20px;
+}
+.day {
+  padding: 12px;
+  background: #ffe6f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.3s, background 0.3s;
+}
+.day:hover { background: #ff99cc; color: white; transform: scale(1.05); }
+.day.saved { background: #ff3399; color: white; }
+
+@media(max-width:600px){
+  #message, #guidedMessage, #thoughts, .bonus { font-size: 1.1em; padding: 15px; }
+  .photo-thumb, .media-thumb, .thought-item { width: 70px; height: 70px; }
+  button { padding: 10px 18px; font-size: 0.95em; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Il nostro spazio speciale 💖</h1>
+</header>
+
+<section id="daily">
+  <p id="countdown"></p>
+  <div id="message">Caricamento messaggio del giorno...</div>
+  <div class="situations">
+    <h3>Se ti senti…</h3>
+    <button onclick="showGuided('triste')">Triste</button>
+    <button onclick="showGuided('ansia')">Ansia</button>
+    <button onclick="showGuided('dormire')">Non riesco a dormire</button>
+    <button onclick="showGuided('preoccupato')">Preoccupato</button>
+  </div>
+  <p id="guidedMessage"></p>
+  <textarea id="thoughts" placeholder="Scrivi qui come ti senti oggi..."></textarea><br>
+  <button onclick="saveThought()">Salva pensiero</button>
+  <p id="saved"></p>
+  <h3>Pensieri salvati 💌</h3>
+  <div id="savedThoughts"></div>
+</section>
+
+<section>
+  <h3>Album dei ricordi</h3>
+  <input type="file" id="photoInput" accept="image/*" multiple>
+  <div id="album"></div>
+</section>
+
+<section>
+  <h3>Messaggi audio/video</h3>
+  <input type="file" id="mediaInput" accept="audio/*,video/*" multiple>
+  <div id="mediaList"></div>
+</section>
+
+<section>
+  <h3>Calendario</h3>
+  <div id="calendar"></div>
+</section>
+
+<script>
+// ===== Messaggi giornalieri profondi (30) =====
+const dailyMessages = [
+"Giorno 1: Ogni tuo sorriso illumina il mio cuore e mi ricorda quanto sia meraviglioso condividere la vita con te.",
+"Giorno 2: Nei giorni di quiete, penso a te e sento un calore profondo che riempie la mia anima.",
+"Giorno 3: Anche se le parole non bastano, il mio amore per te parla ad ogni respiro.",
+"Giorno 4: Ogni momento passato insieme è un tesoro che porto sempre con me.",
+"Giorno 5: Quando penso a noi, il mondo sembra un posto pieno di magia e dolcezza.",
+"Giorno 6: Il tuo amore mi dà forza e speranza anche nei giorni più bui.",
+"Giorno 7: Sei la mia luce, la mia calma, la mia gioia infinita.",
+"Giorno 8: Anche lontani, il legame che ci unisce supera ogni distanza e tempo.",
+"Giorno 9: La tua voce è la melodia che riempie i miei pensieri di pace.",
+"Giorno 10: Ogni ricordo con te è un giardino di emozioni che fiorisce nel mio cuore.",
+"Giorno 11: Penso a te e mi sento a casa, ovunque ci troviamo.",
+"Giorno 12: La tua presenza rende ogni istante più bello, più intenso, più vero.",
+"Giorno 13: Il tuo sorriso illumina anche le mie giornate più grigie.",
+"Giorno 14: Ti porto nei miei pensieri, nei miei sogni e in ogni battito del cuore.",
+"Giorno 15: Ogni gesto tuo, anche piccolo, è un dono che custodisco gelosamente.",
+"Giorno 16: Sei il mio rifugio sicuro, la mia calma nel caos del mondo.",
+"Giorno 17: Il tuo amore è un faro che guida ogni mio passo.",
+"Giorno 18: Con te, anche le difficoltà diventano momenti da affrontare insieme.",
+"Giorno 19: Ti penso e sento un calore che attraversa tutto il mio essere.",
+"Giorno 20: Ogni giorno con te è un nuovo capitolo della nostra storia d'amore.",
+"Giorno 21: Sei la mia dolcezza, la mia forza e la mia ispirazione infinita.",
+"Giorno 22: Quando penso a te, il mondo diventa un posto pieno di colori.",
+"Giorno 23: Il tuo amore mi avvolge come una coperta calda nelle notti fredde.",
+"Giorno 24: Sei la mia felicità quotidiana, il mio sorriso in ogni giorno.",
+"Giorno 25: Ogni ricordo di noi è un tesoro che porto nel cuore.",
+"Giorno 26: Ti amo nei gesti, nelle parole e anche nel silenzio condiviso.",
+"Giorno 27: Il tuo amore rende la mia vita completa, piena e gioiosa.",
+"Giorno 28: Ogni pensiero su di te è un viaggio nel più dolce dei sentimenti.",
+"Giorno 29: Sei il mio conforto, la mia gioia e la mia pace interiore.",
+"Giorno 30: Ogni giorno con te è un regalo che non smetterò mai di ringraziare."
+];
+
+// ===== Messaggi guidati più lunghi =====
+const guidedMessages = {
+triste: "So che oggi ti senti giù. Prenditi un momento per respirare profondamente, osservare le tue emozioni senza giudizio, e pensa a ciò che ci rende unici. Scrivere ciò che provi può aiutarti a liberare il cuore e a sentire la mia vicinanza anche se sono lontano.",
+ansia: "Quando l’ansia ti assale, chiudi gli occhi e immagina un luogo sereno dove siamo insieme. Respira lentamente, unisci i pensieri positivi ai ricordi felici e ricorda che sono qui per te, pronto a sostenerti in ogni momento.",
+dormire: "Se non riesci a dormire, prova a concentrarti sul respiro e immagina il nostro abbraccio. Visualizza ogni momento felice che abbiamo condiviso, lascia andare le preoccupazioni e senti la mia presenza accanto a te.",
+preoccupato: "Quando ti senti preoccupato, fermati e analizza cosa puoi davvero controllare. Scrivi i tuoi pensieri, libera la mente e ricorda che insieme possiamo affrontare qualsiasi cosa. Non sei mai solo, anche quando tutto sembra incerto."
+};
+
+// ===== Giorno corrente =====
+const startDate = new Date("2026-01-01");
+const today = new Date();
+const dayNumber = Math.min(Math.max(Math.floor((today - startDate)/(1000*60*60*24)) + 1, 1), dailyMessages.length);
+document.getElementById("message").innerText = dailyMessages[dayNumber-1];
+
+function showGuided(type){ document.getElementById("guidedMessage").innerText = guidedMessages[type]; }
+
+// ===== Countdown =====
+const returnDate = new Date("2026-02-14");
+const countdownElem = document.getElementById("countdown");
+function updateCountdown(){
+  const now = new Date();
+  const diff = returnDate - now;
+  const days = Math.max(Math.floor(diff/(1000*60*60*24)),0);
+  countdownElem.innerText = `Mancano ${days} giorni al tuo ritorno 💕`;
+}
+updateCountdown();
+setInterval(updateCountdown,1000*60*60);
+
+// ===== Pensieri salvati =====
+function saveThought(){
+  const text = document.getElementById("thoughts").value;
+  if(text.trim() !== ""){
+    let thoughts = JSON.parse(localStorage.getItem("thoughts") || "[]");
+    thoughts.push({text: text, date: new Date().toLocaleDateString()});
+    localStorage.setItem("thoughts", JSON.stringify(thoughts));
+    document.getElementById("saved").innerText = "Pensiero salvato 💖";
+    document.getElementById("thoughts").value = "";
+    displayThoughts();
+  }
+}
+
+function displayThoughts(){
+  const container = document.getElementById("savedThoughts");
+  container.innerHTML = "";
+  const thoughts = JSON.parse(localStorage.getItem("thoughts") || "[]");
+  thoughts.forEach(item=>{
+    const div = document.createElement("div");
+    div.className = "thought-item";
+    div.innerText = item.date + "\n" + item.text;
+    container.appendChild(div);
+  });
+}
+displayThoughts();
+
+// ===== Album di foto =====
+const albumDiv = document.getElementById("album");
+document.getElementById("photoInput").addEventListener("change", function(e){
+  const files = e.target.files;
+  let photos = JSON.parse(localStorage.getItem("photos") || "[]");
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      photos.push(ev.target.result);
+      localStorage.setItem("photos", JSON.stringify(photos));
+      displayPhotos();
+    }
+    reader.readAsDataURL(file);
+  });
+});
+
+function displayPhotos(){
+  albumDiv.innerHTML = "";
+  const photos = JSON.parse(localStorage.getItem("photos") || "[]");
+  photos.forEach(src => {
+    const img = document.createElement("img");
+    img.src = src;
+    img.className = "photo-thumb";
+    albumDiv.appendChild(img);
+  });
+}
+displayPhotos();
+
+// ===== Calendario semplice =====
+const calendarDiv = document.getElementById("calendar");
+for(let d=1; d<=31; d++){
+  const day = document.createElement("div");
+  day.className = "day";
+  day.innerText = d;
+  day.addEventListener("click", ()=>{
+    let savedDays = JSON.parse(localStorage.getItem("calendar") || "[]");
+    if(!savedDays.includes(d)){
+      savedDays.push(d);
+      localStorage.setItem("calendar", JSON.stringify(savedDays));
+      day.classList.add("saved");
+    } else {
+      savedDays = savedDays.filter(x=>x!==d);
+      localStorage.setItem("calendar", JSON.stringify(savedDays));
+      day.classList.remove("saved");
+    }
+  });
+  calendarDiv.appendChild(day);
+}
+// Evidenzia giorni salvati
+const savedDays = JSON.parse(localStorage.getItem("calendar") || "[]");
+savedDays.forEach(d=>{
+  calendarDiv.children[d-1].classList.add("saved");
+});
+</script>
+
+</body>
+</html>
